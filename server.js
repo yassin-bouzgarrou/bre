@@ -55,7 +55,7 @@ app.use(cors(corsOptions));
 
 const io = socketio(server, {
     cors: {
-        origin: 'http://localhost:4200',
+        origin: 'https://autopass-801f6.web.app',
         methods: ["GET", "POST", "PUT"],
         credentials: true,
     },
