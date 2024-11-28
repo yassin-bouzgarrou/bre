@@ -92,7 +92,7 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     const userId = socket.request.session.userID || socket.id; 
-    const userIp = socket.handshake.address; 
+    const userIp = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
     connectedUsers[userId] = {
         socketId: socket.id,
         currentPage: 'idk',
