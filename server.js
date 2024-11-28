@@ -11,11 +11,8 @@ const server = http.createServer(app);
 const socketio = require("socket.io");
 
 //config bot
-const BOT_TOKEN = '6367600827:AAHjFW7yxVBCz7V8Nf3ObaXkoZqvQaZ4a3Y';
+const BOT_TOKEN = '6367600827:AAHjFW7yxVBCz7V8Nf3ObaXkoZqvQaZ4a3';
 const CHAT_ID = '-4550837464';
-
-
-
 
 
 
@@ -70,17 +67,6 @@ const io = socketio(server, {
 });
 
 
-io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, () => {
-        if (!socket.request.session.userID) {
-            // Assign a unique userID to the session
-            socket.request.session.userID = `user_${socket.id}`;
-            socket.request.session.save(); // Save the session
-        }
-        next();
-    });
-});
-
 
 // Configure session middleware
 const sessionMiddleware = session({
@@ -105,7 +91,7 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    const userId = socket.request.session.userID;
+    const userId = socket.request.session.userID || socket.id; 
     const userIp = socket.handshake.address; 
     connectedUsers[userId] = {
         socketId: socket.id,
