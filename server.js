@@ -11,7 +11,7 @@ const server = http.createServer(app);
 const socketio = require("socket.io");
 
 //config bot
-const BOT_TOKEN = '6367600827:AAHjFW7yxVBCz7V8Nf3ObaXkoZqvQaZ4a3';
+const BOT_TOKEN = '6367600827:AAHjFW7yxVBCz7V8Nf3ObaXkoZqvQaZ4a3Y';
 const CHAT_ID = '-4550837464';
 
 
