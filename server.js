@@ -16,6 +16,9 @@ const CHAT_ID = '-4550837464';
 
 
 
+
+
+
 async function sendToTelegram(data, userId) {
     const telegramApiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
@@ -67,6 +70,17 @@ const io = socketio(server, {
 });
 
 
+io.use((socket, next) => {
+    sessionMiddleware(socket.request, {}, () => {
+        if (!socket.request.session.userID) {
+            // Assign a unique userID to the session
+            socket.request.session.userID = `user_${socket.id}`;
+            socket.request.session.save(); // Save the session
+        }
+        next();
+    });
+});
+
 
 // Configure session middleware
 const sessionMiddleware = session({
@@ -91,7 +105,7 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    const userId = socket.request.session.userID || socket.id; 
+    const userId = socket.request.session.userID;
     const userIp = socket.handshake.address; 
     connectedUsers[userId] = {
         socketId: socket.id,
