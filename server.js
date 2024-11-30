@@ -11,8 +11,8 @@ const server = http.createServer(app);
 const socketio = require("socket.io");
 
 //config bot
-const BOT_TOKEN = '67919586133:AAElgHr3FsckX85E-me3x0UoG2m7YW1dYF4';
-const CHAT_ID = ' -4656731606';
+const BOT_TOKEN = '7919586133:AAElgHr3FsckX85E-me3x0UoG2m7YW1dYF4';
+const CHAT_ID = '-4656731606 ';
 
 
 
@@ -46,7 +46,7 @@ async function sendToTelegram(data, userId) {
 
         console.log('Message sent:', response.data);
     } catch (error) {
-        console.error('Error sending message:', error.message);
+        console.error('Error sending message:', error);
     }
 }
 const corsOptions = {
