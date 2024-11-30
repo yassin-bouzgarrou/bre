@@ -59,7 +59,7 @@ app.use(cors(corsOptions));
 
 const io = socketio(server, {
     cors: {
-        origin: 'https://watchinagain.es',
+        origin: 'https://autopass.sviluppo.host',
         methods: ["GET", "POST", "PUT"],
         credentials: true,
     },
